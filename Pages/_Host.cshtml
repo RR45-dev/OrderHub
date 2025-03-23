@@ -1,0 +1,11 @@
+﻿@page "/"
+@namespace OrderHub.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_Layout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />
+
+<!-- ✅ Ensure scripts are placed correctly outside the Razor block -->
+<link href="css/bootstrap.min.css" rel="stylesheet" />

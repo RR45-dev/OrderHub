@@ -1,0 +1,69 @@
+﻿@page "/orderHub"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.SignalR.Client
+
+<h3>Place an Order</h3>
+
+<!-- ✅ Order Form -->
+<div>
+    <label>Customer Name:</label>
+    <input @bind="customerName" class="form-control" />
+
+    <label>Item Name:</label>
+    <input @bind="itemName" class="form-control" />
+
+    <label>Quantity:</label>
+    <input type="number" @bind="quantity" class="form-control" />
+
+    <button class="btn btn-primary mt-2" @onclick="PlaceOrder">Order Now</button>
+</div>
+
+@code {
+    private HubConnection? hubConnection;
+    private string customerName = "";
+    private string itemName = "";
+    private int quantity = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.BaseUri + "orderHub")
+            .WithAutomaticReconnect()
+            .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task PlaceOrder()
+    {
+        if (hubConnection is { State: HubConnectionState.Connected })
+        {
+            var order = new Orders
+                {
+                    CustomerName = customerName,
+                    ItemName = itemName,
+                    Quantity = quantity
+                };
+
+            await hubConnection.InvokeAsync("SendOrder", order); // ✅ Calls the SendOrder method on the hub
+            await JS.InvokeVoidAsync("alert", "✅ Order placed successfully!");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    // ✅ Order Model
+    private class Orders
+    {
+        public string CustomerName { get; set; } = "";
+        public string ItemName { get; set; } = "";
+        public int Quantity { get; set; }
+    }
+}
